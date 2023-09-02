@@ -19,8 +19,8 @@ pub trait RouteExt {
 impl Route {
     pub fn render(&self, state: &mut State, ui: &mut egui::Ui) {
         match self {
-            Route::WifiList => WifiList::default().ui(state, ui),
-            Route::WifiQR => WifiQR::default().ui(state, ui),
+            Route::WifiList => WifiList.ui(state, ui),
+            Route::WifiQR => WifiQR.ui(state, ui),
         }
     }
 

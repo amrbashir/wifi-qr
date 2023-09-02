@@ -112,7 +112,6 @@ impl eframe::App for App {
 
                 // TODOs:
                 // 1. titlebar buttons styling
-                // 2. add app icon next to title in title bar
                 egui::Frame::none().show(ui, |ui| {
                     // render titlebar
                     let tb_height = 32.0;
@@ -227,8 +226,8 @@ impl eframe::App for App {
                                         });
                                     }
 
-                                    if self.state.selected_route == Route::WifiList {
-                                        if ui
+                                    if self.state.selected_route == Route::WifiList
+                                        && ui
                                             .add(
                                                 // refresh
                                                 widgets::Button::new("")
@@ -236,9 +235,8 @@ impl eframe::App for App {
                                                     .flat(true),
                                             )
                                             .clicked()
-                                        {
-                                            self.state.requested_refresh = true;
-                                        }
+                                    {
+                                        self.state.requested_refresh = true;
                                     }
 
                                     ui.add_space(ui.available_width());
