@@ -115,7 +115,7 @@ impl eframe::App for App {
                 });
 
                 // TODOs:
-                // 1. titlebar buttons styling
+                // 1. adjust titlebar buttons styling and sizes
                 egui::Frame::none().show(ui, |ui| {
                     // render titlebar
                     let tb_height = 32.0;

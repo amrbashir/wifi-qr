@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{os::windows::process::CommandExt, process::Command};
 
 use eframe::egui;
 
@@ -8,6 +8,8 @@ use crate::{
     widgets,
     wifi::{ConnectionType, WiFi},
 };
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[derive(Default)]
 pub struct WifiList;
@@ -51,6 +53,7 @@ impl RouteExt for WifiList {
 fn update_wifi_list(wifi_list: &mut Vec<WiFi>) {
     let profiles: Vec<String> = Command::new("netsh")
         .args(["wlan", "show", "profiles"])
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .ok()
         .map(|o| {
@@ -68,6 +71,7 @@ fn update_wifi_list(wifi_list: &mut Vec<WiFi>) {
         .filter_map(|p| {
             Command::new("netsh")
                 .args(["wlan", "show", "profile", p.as_str(), "key=clear"])
+                .creation_flags(CREATE_NO_WINDOW)
                 .output()
                 .ok()
                 .map(|o| {
