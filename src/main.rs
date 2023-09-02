@@ -4,6 +4,7 @@ use eframe::{
     egui::{self, vec2, Id, Margin, Modifiers, Rounding, Sense},
     emath::Align,
     epaint::{Color32, Stroke},
+    IconData,
 };
 use raw_window_handle::HasRawWindowHandle;
 
@@ -25,6 +26,9 @@ fn main() -> Result<(), eframe::Error> {
         decorated: false,
         centered: true,
         resizable: true,
+        icon_data: Some(
+            IconData::try_from_png_bytes(include_bytes!("../.github/icon.png")).unwrap(),
+        ),
         ..Default::default()
     };
     eframe::run_native("WiFi QR", options, Box::new(|cc| Box::new(App::new(cc))))

@@ -1,9 +1,12 @@
 [package]
 name = "wifi-qr"
-version = "0.1.0"
+version = "0.0.0"
+description = "A small Windows utiliy to show a QR code for the stored WiFi connections."
+license = "MIT"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build-dependencies]
+winres = "0.1"
 
 [dependencies]
 eframe = { git = "https://github.com//emilk/egui", rev = "9478e50d012c5138551c38cbee16b07bc1fcf283" }
