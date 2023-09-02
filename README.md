@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="./.github/icon.svg#gh-light-mode-only" alt="wifi-qr icon" />
-  <img src="./.github/icon_dark.svg#gh-dark-mode-only" alt="wifi-qr icon" />
+  <img width="200" height="200" src="./.github/icon.svg#gh-light-mode-only" alt="wifi-qr icon" />
+  <img width="200" height="200" src="./.github/icon_dark.svg#gh-dark-mode-only" alt="wifi-qr icon" />
 </p>
 
 ## wifi-qr
