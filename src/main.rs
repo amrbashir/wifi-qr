@@ -42,7 +42,7 @@ pub struct App {
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self::apply_effects(cc, cc.egui_ctx.style().visuals.dark_mode);
-        Self::setup_fonts(&cc.egui_ctx);
+        let _ = Self::setup_fonts(&cc.egui_ctx);
         Self {
             ..Default::default()
         }
@@ -53,16 +53,16 @@ impl App {
         let _ = window_shadows::set_shadow(handle, true);
     }
 
-    fn setup_fonts(ctx: &egui::Context) {
+    fn setup_fonts(ctx: &egui::Context) -> std::io::Result<()> {
         let mut fonts = egui::FontDefinitions::default();
 
         fonts.font_data.insert(
             fonts::SEGOE_UI_VARIABLE.name.to_owned(),
-            egui::FontData::from_static(fonts::SEGOE_UI_VARIABLE.bytes),
+            egui::FontData::from_owned(fonts::SEGOE_UI_VARIABLE.load()?),
         );
         fonts.font_data.insert(
             fonts::SEGOE_FLUENT_ICONS.name.to_owned(),
-            egui::FontData::from_static(fonts::SEGOE_FLUENT_ICONS.bytes),
+            egui::FontData::from_owned(fonts::SEGOE_FLUENT_ICONS.load()?),
         );
 
         fonts
@@ -77,6 +77,8 @@ impl App {
             .insert(0, fonts::SEGOE_UI_VARIABLE.name.to_owned());
 
         ctx.set_fonts(fonts);
+
+        Ok(())
     }
 }
 
