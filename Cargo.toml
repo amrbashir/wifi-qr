@@ -1,6 +1,6 @@
 [package]
 name = "wifi-qr"
-version = "0.1.0"
+version = "0.1.1"
 description = "A small Windows utiliy to show a QR code for the stored WiFi connections."
 license = "MIT"
 edition = "2021"
