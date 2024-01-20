@@ -1,3 +1,5 @@
+[![StandWithPalestine](https://raw.githubusercontent.com/Safouene1/support-palestine-banner/master/StandWithPalestine.svg)](https://techforpalestine.org/learn-more)
+
 <p align="center">
   <img width="200" height="200" src="./.github/icon.svg#gh-light-mode-only" alt="wifi-qr icon" />
   <img width="200" height="200" src="./.github/icon_dark.svg#gh-dark-mode-only" alt="wifi-qr icon" />
