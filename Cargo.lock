@@ -3655,7 +3655,7 @@ checksum = "7219d36b6eac893fa81e84ebe06485e7dcbb616177469b142df14f1f4deb1311"
 
 [[package]]
 name = "wifi-qr"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "eframe",
  "egui_extras",
