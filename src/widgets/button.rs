@@ -252,10 +252,12 @@ impl Widget for Button {
                 )
             }
 
-            text.paint_with_visuals(ui.painter(), text_pos, &visuals);
+            ui.painter().galley(text_pos, text, visuals.text_color());
+
             if let Some(subtitle) = subtitle {
                 let subtitle_pos = text_pos + vec2(0.0, text_size.y + ui.spacing().item_spacing.y);
-                subtitle.paint_with_visuals(ui.painter(), subtitle_pos, &visuals);
+                ui.painter()
+                    .galley(subtitle_pos, subtitle, visuals.text_color());
             }
 
             if let Some(icon) = icon {
@@ -263,7 +265,8 @@ impl Widget for Button {
                     rect.min.x + button_padding.x,
                     rect.center().y - 0.5 - (icon.size().y / 2.0),
                 );
-                icon.paint_with_visuals(ui.painter(), icon_pos, &visuals);
+
+                ui.painter().galley(icon_pos, icon, visuals.text_color());
             }
         }
 

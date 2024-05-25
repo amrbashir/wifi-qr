@@ -1,3 +1,5 @@
+use qrcode_generator::QrCodeEcc;
+
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum ConnectionType {
@@ -29,4 +31,19 @@ pub struct WiFi {
     pub password: String,
     pub conn_type: ConnectionType,
     pub hidden: bool,
+}
+
+impl WiFi {
+    pub fn qr_str(&self) -> String {
+        let mut qr = format!("WIFI:T:{};S:{};", self.conn_type, self.name);
+        if !self.password.is_empty() {
+            qr.push_str(&format!("P:{};", self.password))
+        }
+        qr.push_str(&format!("{};", if self.hidden { "H:true" } else { "" }));
+        qr
+    }
+
+    pub fn qr(&self) -> Vec<u8> {
+        qrcode_generator::to_png_to_vec(self.qr_str(), QrCodeEcc::Low, 1024).unwrap()
+    }
 }

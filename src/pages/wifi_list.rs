@@ -40,7 +40,7 @@ impl RouteExt for WifiList {
                             .clicked()
                         {
                             state.selected_wifi = wifi;
-                            state.selected_wifi_qr_texture = None;
+                            state.selected_wifi_qr_img_bytes = None;
                             Route::navigate(state, Route::WifiQR);
                         }
                     }

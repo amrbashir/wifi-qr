@@ -1,15 +1,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::{
-    egui::{self, vec2, Id, Margin, Modifiers, Rounding, Sense},
+    egui::{self, vec2, Id, Margin, Modifiers, Rounding, Sense, ViewportCommand},
     emath::Align,
     epaint::{Color32, Stroke},
-    IconData,
+    icon_data,
 };
-use raw_window_handle::HasRawWindowHandle;
+use raw_window_handle::HasWindowHandle;
 
 use route::Route;
 use state::State;
+use windows_sys::Win32::{Graphics::Dwm::DwmExtendFrameIntoClientArea, UI::Controls::MARGINS};
 
 mod fonts;
 mod pages;
@@ -20,18 +21,31 @@ mod wifi;
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        min_window_size: Some(egui::vec2(300.0, 350.0)),
-        initial_window_size: Some(egui::vec2(600.0, 600.0)),
-        transparent: true,
-        decorated: false,
         centered: true,
-        resizable: true,
-        icon_data: Some(
-            IconData::try_from_png_bytes(include_bytes!("../.github/icon.png")).unwrap(),
-        ),
+        window_builder: Some(Box::new(|builder| {
+            //
+            builder
+                .with_inner_size([600.0, 600.0])
+                .with_min_inner_size([300.0, 350.0])
+                .with_transparent(true)
+                .with_decorations(false)
+                .with_resizable(true)
+                .with_icon(
+                    icon_data::from_png_bytes(include_bytes!("../.github/icon.png")).unwrap(),
+                )
+        })),
         ..Default::default()
     };
-    eframe::run_native("WiFi QR", options, Box::new(|cc| Box::new(App::new(cc))))
+    eframe::run_native(
+        "WiFi QR",
+        options,
+        Box::new(|cc| {
+            // This gives us image support:
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+
+            Box::new(App::new(cc))
+        }),
+    )
 }
 
 #[derive(Default)]
@@ -48,9 +62,22 @@ impl App {
         }
     }
 
-    fn apply_effects(handle: &impl HasRawWindowHandle, dark: bool) {
+    fn apply_effects(handle: &impl HasWindowHandle, dark: bool) {
         let _ = window_vibrancy::apply_mica(handle, Some(dark));
-        let _ = window_shadows::set_shadow(handle, true);
+
+        // shadows
+        match handle.window_handle().unwrap().as_raw() {
+            raw_window_handle::RawWindowHandle::Win32(handle) => unsafe {
+                let margins = MARGINS {
+                    cyTopHeight: 1,
+                    cxLeftWidth: 1,
+                    cxRightWidth: 1,
+                    cyBottomHeight: 1,
+                };
+                DwmExtendFrameIntoClientArea(handle.hwnd.get(), &margins);
+            },
+            _ => {}
+        }
     }
 
     fn setup_fonts(ctx: &egui::Context) -> std::io::Result<()> {
@@ -116,24 +143,25 @@ impl eframe::App for App {
                     }
                 });
 
-                // TODOs:
-                // 1. adjust titlebar buttons styling and sizes
                 egui::Frame::none().show(ui, |ui| {
                     // render titlebar
                     let tb_height = 32.0;
                     let tb_padding = 8.0;
                     let tb_rect = {
                         let mut rect = ui.max_rect();
-                        rect.max.y = rect.min.y + 32.0;
+                        rect.max.y = 32.0;
                         rect
                     };
 
                     let tb_response = ui.interact(tb_rect, Id::new("title_bar"), Sense::click());
 
                     if tb_response.double_clicked() {
-                        frame.set_maximized(!frame.info().window_info.maximized);
-                    } else if tb_response.is_pointer_button_down_on() {
-                        frame.drag_window();
+                        let is_maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
+                        ui.ctx()
+                            .send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
+                    }
+                    if tb_response.is_pointer_button_down_on() {
+                        ui.ctx().send_viewport_cmd(ViewportCommand::StartDrag);
                     }
 
                     ui.allocate_ui_at_rect(tb_rect, |ui| {
@@ -174,39 +202,43 @@ impl eframe::App for App {
                                         .add(
                                             // close
                                             widgets::Button::new("")
-                                                .rounding(Rounding::none())
+                                                .rounding(Rounding::ZERO)
                                                 .flat(true),
                                         )
                                         .clicked()
                                     {
-                                        frame.close();
+                                        ui.ctx().send_viewport_cmd(ViewportCommand::Close);
                                     }
-                                    let maximized = frame.info().window_info.maximized;
+                                    let is_maximized =
+                                        ui.input(|i| i.viewport().maximized.unwrap_or(false));
                                     if ui
                                         .add(
                                             // maximize
-                                            widgets::Button::new(if maximized {
+                                            widgets::Button::new(if is_maximized {
                                                 ""
                                             } else {
                                                 ""
                                             })
-                                            .rounding(Rounding::none())
+                                            .rounding(Rounding::ZERO)
                                             .flat(true),
                                         )
                                         .clicked()
                                     {
-                                        frame.set_maximized(!maximized);
+                                        ui.ctx().send_viewport_cmd(ViewportCommand::Maximized(
+                                            !is_maximized,
+                                        ));
                                     }
                                     if ui
                                         .add(
                                             // minimize
                                             widgets::Button::new("")
-                                                .rounding(Rounding::none())
+                                                .rounding(Rounding::ZERO)
                                                 .flat(true),
                                         )
                                         .clicked()
                                     {
-                                        frame.set_minimized(true);
+                                        ui.ctx()
+                                            .send_viewport_cmd(ViewportCommand::Minimized(true));
                                     }
 
                                     ui.add_space(default_item_spacing.x);
@@ -220,7 +252,7 @@ impl eframe::App for App {
                                             } else {
                                                 ""
                                             })
-                                            .rounding(Rounding::none())
+                                            .rounding(Rounding::ZERO)
                                             .flat(true),
                                         )
                                         .clicked()
@@ -237,7 +269,7 @@ impl eframe::App for App {
                                             .add(
                                                 // refresh
                                                 widgets::Button::new("")
-                                                    .rounding(Rounding::none())
+                                                    .rounding(Rounding::ZERO)
                                                     .flat(true),
                                             )
                                             .clicked()

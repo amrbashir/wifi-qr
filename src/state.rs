@@ -1,5 +1,3 @@
-use eframe::egui;
-
 use crate::{route::Route, wifi::WiFi};
 
 pub struct State {
@@ -9,7 +7,7 @@ pub struct State {
     pub wifi_list: Vec<WiFi>,
     pub selected_wifi: WiFi,
     pub requested_refresh: bool,
-    pub selected_wifi_qr_texture: Option<egui::TextureHandle>,
+    pub selected_wifi_qr_img_bytes: Option<Vec<u8>>,
     pub dark_mode: bool,
 }
 
@@ -22,7 +20,7 @@ impl Default for State {
             wifi_list: Default::default(),
             selected_wifi: Default::default(),
             requested_refresh: true,
-            selected_wifi_qr_texture: None,
+            selected_wifi_qr_img_bytes: None,
             dark_mode: true,
         }
     }
