@@ -1,8 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use std::sync::Arc;
+
 use eframe::{
-    egui::{self, vec2, Id, Margin, Modifiers, Rounding, Sense, ViewportCommand},
-    emath::Align,
+    egui::{self, Layout, Margin, Modifiers, ViewportCommand},
     epaint::{Color32, Stroke},
     icon_data,
 };
@@ -19,20 +20,18 @@ mod state;
 mod widgets;
 mod wifi;
 
+const WINDOW_ICON: &[u8] = include_bytes!("../icons/icon.png");
+
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         centered: true,
         window_builder: Some(Box::new(|builder| {
-            //
             builder
                 .with_inner_size([600.0, 600.0])
                 .with_min_inner_size([300.0, 350.0])
                 .with_transparent(true)
-                .with_decorations(false)
                 .with_resizable(true)
-                .with_icon(
-                    icon_data::from_png_bytes(include_bytes!("../.github/icon.png")).unwrap(),
-                )
+                .with_icon(icon_data::from_png_bytes(WINDOW_ICON).unwrap())
         })),
         ..Default::default()
     };
@@ -57,17 +56,20 @@ impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self::apply_effects(cc, cc.egui_ctx.style().visuals.dark_mode);
         let _ = Self::setup_fonts(&cc.egui_ctx);
-        Self {
-            ..Default::default()
-        }
+
+        Self::default()
     }
 
     fn apply_effects(handle: &impl HasWindowHandle, dark: bool) {
         let _ = window_vibrancy::apply_mica(handle, Some(dark));
+        Self::apply_shadow(handle)
+    }
 
-        // shadows
-        match handle.window_handle().unwrap().as_raw() {
-            raw_window_handle::RawWindowHandle::Win32(handle) => unsafe {
+    fn apply_shadow(handle: &impl HasWindowHandle) {
+        if let raw_window_handle::RawWindowHandle::Win32(handle) =
+            handle.window_handle().unwrap().as_raw()
+        {
+            unsafe {
                 let margins = MARGINS {
                     cyTopHeight: 1,
                     cxLeftWidth: 1,
@@ -75,8 +77,17 @@ impl App {
                     cyBottomHeight: 1,
                 };
                 DwmExtendFrameIntoClientArea(handle.hwnd.get(), &margins);
-            },
-            _ => {}
+            }
+        }
+    }
+
+    // TODO: seems like eframe fails to change icon on startup, let's workaround it for now
+    fn change_icon(&mut self, ctx: &egui::Context) {
+        if self.state.changed_icon_counter < 5 {
+            let icon_data = Arc::new(icon_data::from_png_bytes(WINDOW_ICON).unwrap());
+            ctx.send_viewport_cmd(ViewportCommand::Icon(Some(icon_data)));
+
+            self.state.changed_icon_counter += 1;
         }
     }
 
@@ -114,6 +125,8 @@ impl eframe::App for App {
         egui::CentralPanel::default()
             .frame(egui::Frame::none().fill(Color32::TRANSPARENT))
             .show(ctx, |ui| {
+                self.change_icon(ctx);
+
                 // window effects
                 let dark_mode = ui.visuals().dark_mode;
                 if dark_mode != self.state.dark_mode {
@@ -144,115 +157,34 @@ impl eframe::App for App {
                 });
 
                 egui::Frame::none().show(ui, |ui| {
-                    // render titlebar
-                    let tb_height = 32.0;
-                    let tb_padding = 8.0;
-                    let tb_rect = {
-                        let mut rect = ui.max_rect();
-                        rect.max.y = 32.0;
-                        rect
-                    };
+                    // Render route
+                    egui::Frame::none()
+                        .inner_margin(Margin::same(8.0))
+                        .show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                // back
+                                if ui
+                                    .add_enabled(
+                                        self.state.previous_route.is_some(),
+                                        |ui: &mut egui::Ui| {
+                                            ui.add(widgets::Button::new("").flat(true))
+                                        },
+                                    )
+                                    .clicked()
+                                {
+                                    Route::back(&mut self.state)
+                                }
 
-                    let tb_response = ui.interact(tb_rect, Id::new("title_bar"), Sense::click());
-
-                    if tb_response.double_clicked() {
-                        let is_maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
-                        ui.ctx()
-                            .send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
-                    }
-                    if tb_response.is_pointer_button_down_on() {
-                        ui.ctx().send_viewport_cmd(ViewportCommand::StartDrag);
-                    }
-
-                    ui.allocate_ui_at_rect(tb_rect, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.vertical(|ui| {
-                                ui.add_space(tb_padding);
-                                ui.horizontal_centered(|ui| {
-                                    ui.add_space(tb_padding);
-                                    if ui
-                                        .add_enabled(
-                                            self.state.previous_route.is_some(),
-                                            |ui: &mut egui::Ui| {
-                                                ui.add_sized(
-                                                    [0.0, tb_height - tb_padding],
-                                                    // back
-                                                    widgets::Button::new("")
-                                                        .flat(true)
-                                                        .padding(vec2(12.0, 12.0)),
-                                                )
-                                            },
-                                        )
-                                        .clicked()
-                                    {
-                                        Route::back(&mut self.state)
-                                    }
-
-                                    ui.label("WiFi QR");
-                                });
-                            });
-
-                            ui.with_layout(egui::Layout::right_to_left(Align::Min), |ui| {
-                                ui.horizontal_centered(|ui| {
-                                    let style = ui.style_mut();
-                                    let default_item_spacing = style.spacing.item_spacing;
-                                    style.spacing.item_spacing = vec2(0.0, 0.0);
-
+                                // refresh
+                                ui.with_layout(Layout::right_to_left(egui::Align::Min), |ui| {
+                                    // dark mode toggle
                                     if ui
                                         .add(
-                                            // close
-                                            widgets::Button::new("")
-                                                .rounding(Rounding::ZERO)
-                                                .flat(true),
-                                        )
-                                        .clicked()
-                                    {
-                                        ui.ctx().send_viewport_cmd(ViewportCommand::Close);
-                                    }
-                                    let is_maximized =
-                                        ui.input(|i| i.viewport().maximized.unwrap_or(false));
-                                    if ui
-                                        .add(
-                                            // maximize
-                                            widgets::Button::new(if is_maximized {
-                                                ""
-                                            } else {
-                                                ""
-                                            })
-                                            .rounding(Rounding::ZERO)
-                                            .flat(true),
-                                        )
-                                        .clicked()
-                                    {
-                                        ui.ctx().send_viewport_cmd(ViewportCommand::Maximized(
-                                            !is_maximized,
-                                        ));
-                                    }
-                                    if ui
-                                        .add(
-                                            // minimize
-                                            widgets::Button::new("")
-                                                .rounding(Rounding::ZERO)
-                                                .flat(true),
-                                        )
-                                        .clicked()
-                                    {
-                                        ui.ctx()
-                                            .send_viewport_cmd(ViewportCommand::Minimized(true));
-                                    }
-
-                                    ui.add_space(default_item_spacing.x);
-                                    ui.style_mut().spacing.item_spacing = default_item_spacing;
-
-                                    if ui
-                                        .add(
-                                            // dark mode toggle
                                             widgets::Button::new(if dark_mode {
                                                 ""
                                             } else {
                                                 ""
                                             })
-                                            .rounding(Rounding::ZERO)
                                             .flat(true),
                                         )
                                         .clicked()
@@ -265,28 +197,13 @@ impl eframe::App for App {
                                     }
 
                                     if self.state.selected_route == Route::WifiList
-                                        && ui
-                                            .add(
-                                                // refresh
-                                                widgets::Button::new("")
-                                                    .rounding(Rounding::ZERO)
-                                                    .flat(true),
-                                            )
-                                            .clicked()
+                                        && ui.add(widgets::Button::new("").flat(true)).clicked()
                                     {
                                         self.state.requested_refresh = true;
                                     }
-
-                                    ui.add_space(ui.available_width());
-                                })
+                                });
                             });
-                        });
-                    });
 
-                    // Render route
-                    egui::Frame::none()
-                        .inner_margin(Margin::same(8.0))
-                        .show(ui, |ui| {
                             self.state
                                 .selected_route
                                 .clone()

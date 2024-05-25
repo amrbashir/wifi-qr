@@ -1,5 +1,5 @@
 fn main() -> std::io::Result<()> {
     winres::WindowsResource::new()
-        .set_icon("./.github/icon.ico")
+        .set_icon("./icons/icon.ico")
         .compile()
 }

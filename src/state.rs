@@ -9,6 +9,7 @@ pub struct State {
     pub requested_refresh: bool,
     pub selected_wifi_qr_img_bytes: Option<Vec<u8>>,
     pub dark_mode: bool,
+    pub changed_icon_counter: u8,
 }
 
 impl Default for State {
@@ -22,6 +23,7 @@ impl Default for State {
             requested_refresh: true,
             selected_wifi_qr_img_bytes: None,
             dark_mode: true,
+            changed_icon_counter: 0,
         }
     }
 }
