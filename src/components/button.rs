@@ -1,7 +1,7 @@
 use freya::prelude::*;
 
 #[derive(Props, Clone, PartialEq)]
-pub struct WinUiButtonProps {
+pub struct FluentButtonProps {
     pub children: Element,
     pub theme: Option<ButtonThemeWith>,
     pub enabled: Option<bool>,
@@ -22,7 +22,7 @@ pub struct WinUiButtonProps {
 }
 
 #[allow(non_snake_case)]
-pub fn WinUiButton(props: WinUiButtonProps) -> Element {
+pub fn FluentButton(props: FluentButtonProps) -> Element {
     let enabled = props.enabled.unwrap_or(true);
 
     let mut focus = use_focus();

@@ -1,7 +1,7 @@
 use dioxus_router::prelude::*;
 use freya::prelude::*;
 
-use crate::{components::WinUiButton, icons, wifi::WiFi, Route};
+use crate::{components::FluentButton, icons, wifi::WiFi, Route};
 
 #[allow(non_snake_case)]
 #[component]
@@ -19,7 +19,7 @@ pub fn Home() -> Element {
     rsx!(
         ScrollView {
             for wifi in wifi_list() {
-                WinUiButton {
+                FluentButton {
                     direction: "horizontal",
                     main_align: "start",
                     width: "fill",

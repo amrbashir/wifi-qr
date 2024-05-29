@@ -1,7 +1,7 @@
 use dioxus_router::prelude::*;
 use freya::prelude::*;
 
-use crate::{components::WinUiButton, icons, wifi::WiFi, Route, MAIN_WINDOW_HWND};
+use crate::{components::FluentButton, icons, wifi::WiFi, Route, MAIN_WINDOW_HWND};
 
 #[derive(Props, Clone, PartialEq)]
 pub struct NavBarProps {
@@ -35,7 +35,7 @@ pub fn NavBar(props: NavBarProps) -> Element {
             margin,
             direction: "horizontal",
             width: "fill",
-            WinUiButton {
+            FluentButton {
                 flat: true,
                 enabled: !is_home,
                 onclick: move |_| { router.go_back() },
@@ -46,7 +46,7 @@ pub fn NavBar(props: NavBarProps) -> Element {
                 width: "fill",
                 main_align: "end",
                 if is_home {
-                    WinUiButton {
+                    FluentButton {
                         margin: "0 4 0 0",
                         flat: true,
                         onclick: move |_| {
@@ -57,7 +57,7 @@ pub fn NavBar(props: NavBarProps) -> Element {
                         label {{icons::REFRESH}}
                     }
                 }
-                WinUiButton {
+                FluentButton {
                     flat: true,
                     onclick: change_theme,
                     label {
