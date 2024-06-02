@@ -39,7 +39,8 @@ fn PageNotFound() -> Element {
 
 #[allow(non_snake_case)]
 fn Layout() -> Element {
-    use_init_theme(crate::theme::DARK_THEME);
+    crate::theme::use_init_theme();
+
     use_context_provider(|| Signal::new(Vec::<WiFi>::new()));
 
     let router = router();

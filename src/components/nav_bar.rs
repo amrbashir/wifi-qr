@@ -1,7 +1,7 @@
 use dioxus_router::prelude::*;
 use freya::prelude::*;
 
-use crate::{components::FluentButton, icons, wifi::WiFi, Route, MAIN_WINDOW_HWND};
+use crate::{components::FluentButton, icons, theme::ThemeVariant, wifi::WiFi, Route};
 
 #[derive(Props, Clone, PartialEq)]
 pub struct NavBarProps {
@@ -14,16 +14,16 @@ pub fn NavBar(props: NavBarProps) -> Element {
     let current_route = use_route::<Route>();
     let is_home = matches!(current_route, Route::Home {});
 
-    let mut theme = use_theme();
-    let is_dark = theme.read().name == crate::theme::DARK_THEME.name;
+    let mut current_theme = use_theme();
+    let mut current_theme_variant: Signal<ThemeVariant> = use_signal(|| ThemeVariant::System);
+
+    let next_theme_variant_icon = current_theme_variant.read().next_icon();
+
     let change_theme = move |_| {
-        *theme.write() = if is_dark {
-            let _ = window_vibrancy::apply_mica(unsafe { MAIN_WINDOW_HWND }, Some(false));
-            crate::theme::LIGHT_THEME
-        } else {
-            let _ = window_vibrancy::apply_mica(unsafe { MAIN_WINDOW_HWND }, Some(true));
-            crate::theme::DARK_THEME
-        };
+        let next_variant = current_theme_variant.read().next();
+        *current_theme_variant.write() = next_variant;
+        *current_theme.write() = next_variant.into();
+        next_variant.apply_mica();
     };
 
     let mut wifi_list = use_context::<Signal<Vec<WiFi>>>();
@@ -60,13 +60,7 @@ pub fn NavBar(props: NavBarProps) -> Element {
                 FluentButton {
                     flat: true,
                     onclick: change_theme,
-                    label {
-                        if is_dark {
-                            {icons::SUN}
-                        } else {
-                            {icons::MOON}
-                        }
-                    }
+                    label {{next_theme_variant_icon}}
                 }
             }
         }

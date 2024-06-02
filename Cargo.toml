@@ -25,3 +25,8 @@ winit = { version = "0.29", default-features = false }
 image = { version = "0.24", features = ["png"] }
 qrcode-generator = "4.1"
 window-vibrancy = "0.5"
+
+[patch.crates-io]
+freya = { git = "https://github.com/marc2332/freya", rev = "bf08123c62b94f0ca2d3aaece8374c9569ebb16f" }
+freya-engine = { git = "https://github.com/marc2332/freya", rev = "bf08123c62b94f0ca2d3aaece8374c9569ebb16f" }
+freya-hooks = { git = "https://github.com/marc2332/freya", rev = "bf08123c62b94f0ca2d3aaece8374c9569ebb16f" }
