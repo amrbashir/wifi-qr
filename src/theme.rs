@@ -52,18 +52,33 @@ pub enum ThemeVariant {
 
 impl ThemeVariant {
     pub fn next(self) -> Self {
-        match self {
-            Self::System => Self::Dark,
-            Self::Dark => Self::Light,
-            Self::Light => Self::System,
+        let system_theme = use_preferred_theme();
+        let is_dark = matches!(*system_theme.read(), PreferredTheme::Dark);
+
+        if is_dark {
+            match self {
+                Self::System => Self::Light,
+                Self::Light => Self::Dark,
+                Self::Dark => Self::System,
+            }
+        } else {
+            match self {
+                Self::System => Self::Dark,
+                Self::Dark => Self::Light,
+                Self::Light => Self::System,
+            }
         }
     }
 
     pub fn next_icon(self) -> &'static str {
+        self.next().icon()
+    }
+
+    pub fn icon(&self) -> &'static str {
         match self {
-            ThemeVariant::System => icons::MOON,
-            ThemeVariant::Dark => icons::SUN,
-            ThemeVariant::Light => icons::CONTRAST,
+            ThemeVariant::System => icons::CONTRAST,
+            ThemeVariant::Dark => icons::MOON,
+            ThemeVariant::Light => icons::SUN,
         }
     }
 
