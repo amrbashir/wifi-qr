@@ -40,14 +40,12 @@ fn app() -> Element {
 fn main() {
     launch_cfg(
         app,
-        LaunchConfig {
-            window: WindowConfig::<()> {
+        LaunchConfig::<()> {
+            window_config: WindowConfig {
                 icon: winit::window::Icon::from_resource(1, None).ok(),
                 title: "WiFi QR",
-                width: 400.0,
-                height: 400.0,
-                min_width: Some(400.0),
-                min_height: Some(400.0),
+                size: (400.0, 400.0),
+                min_size: Some((400.0, 400.0)),
                 transparent: true,
                 background: Color::TRANSPARENT,
                 #[cfg(windows)]

@@ -29,7 +29,7 @@ pub fn FluentButton(props: FluentButtonProps) -> Element {
     let mut status = use_signal(ButtonStatus::default);
     let platform = use_platform();
 
-    let focus_id = focus.attribute();
+    let a11y_id = focus.attribute();
 
     let user_click = &props.onclick;
 
@@ -65,7 +65,7 @@ pub fn FluentButton(props: FluentButtonProps) -> Element {
 
     let onkeydown = {
         move |e: KeyboardEvent| {
-            if enabled && focus.validate_keydown(e) {
+            if enabled && focus.validate_globalkeydown(&e) {
                 if let Some(onclick) = &props.onclick {
                     onclick(None)
                 }
@@ -124,7 +124,7 @@ pub fn FluentButton(props: FluentButtonProps) -> Element {
             onmouseenter,
             onmouseleave,
             onkeydown,
-            focus_id,
+            a11y_id,
             border,
             width,
             height,
