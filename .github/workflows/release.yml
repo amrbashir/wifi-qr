@@ -13,18 +13,19 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
       - run: mv ./target/release/wifi-qr.exe wifi-qr.exe
+      - run: cp wifi-qr.exe wifi-qr-${{github.ref_name}}.exe
       - name: install NSIS
         run: |
           iwr -useb get.scoop.sh -outfile 'install.ps1'
           .\install.ps1 -RunAsAdmin
           scoop update
           scoop bucket add extras
-          scoop install nsis
+          scoop install nsis 
       - run: makensis /V4 installer.nsi
       - run: mv wifi-qr-setup.exe wifi-qr-${{github.ref_name}}-setup.exe
       - name: release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            wifi-qr.exe
+            wifi-qr-${{github.ref_name}}.exe
             wifi-qr-${{github.ref_name}}-setup.exe
