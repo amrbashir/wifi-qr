@@ -2,6 +2,7 @@
 name = "wifi-qr"
 version = "0.3.1"
 description = "A small Windows utiliy to show a QR code for the stored WiFi connections."
+authors = ["Amr Bashir <contact@amrbashir.me>"]
 license = "MIT"
 edition = "2021"
 
